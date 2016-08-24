@@ -1,3 +1,5 @@
+#!/usr/bin/python2.7
+
 import Image
 import getopt
 import os
