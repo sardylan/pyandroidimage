@@ -1,44 +1,45 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 
-import Image
 import getopt
 import os
 import sys
+
+from PIL import Image
 
 
 class PyAndroidImage:
     @staticmethod
     def create_dir(directory):
         if not os.path.isdir(directory):
-            os.makedirs(directory, 0755)
+            os.makedirs(directory, 0o755)
 
     @staticmethod
     def usage():
-        print ""
-        print "Usage: %s [options]" % sys.argv[0]
-        print ""
-        print ""
-        print ""
-        print " -h | --help                     Shows this message"
-        print ""
-        print " -i | --input=<filename>         Input filename"
-        print " -o | --output=<dirpath>         Output resource directory"
-        print "                                   e.g. app/src/main/res"
-        print ""
-        print " -d | --dpi=<dpi>                DPI of source image"
-        print "                                   default to 640"
-        print ""
-        print ""
-        print ""
-        print "Fixed resolutions values for icons:"
-        print "(Resolution values as per 640dpi)"
-        print ""
-        print " -l | --launcher                 Launcher (192x192)"
-        print " -a | --actionbar                ActionBar (128x128 with 96x96 area)"
-        print " -n | --notification             Notification (96x96  with 88x88 area)"
-        print " -s | --smallcontextual          Small contextual (64x64)"
-        print ""
-        print ""
+        print("")
+        print("Usage: %s [options]" % sys.argv[0])
+        print("")
+        print("")
+        print("")
+        print(" -h | --help                     Shows this message")
+        print("")
+        print(" -i | --input=<filename>         Input filename")
+        print(" -o | --output=<dirpath>         Output resource directory")
+        print("                                   e.g. app/src/main/res")
+        print("")
+        print(" -d | --dpi=<dpi>                DPI of source image")
+        print("                                   default to 640")
+        print("")
+        print("")
+        print("")
+        print("Fixed resolutions values for icons:")
+        print("(Resolution values as per 640dpi)")
+        print("")
+        print(" -l | --launcher                 Launcher (192x192)")
+        print(" -a | --actionbar                ActionBar (128x128 with 96x96 area)")
+        print(" -n | --notification             Notification (96x96  with 88x88 area)")
+        print(" -s | --smallcontextual          Small contextual (64x64)")
+        print("")
+        print("")
 
     def __init__(self):
         self._input = ""
@@ -64,7 +65,7 @@ class PyAndroidImage:
                                         "input=", "output=", "dpi=",
                                         "launcher", "actionbar", "notification", "smallcontextual"])
         except getopt.GetoptError as err:
-            print str(err)
+            print(str(err))
             self.usage()
             sys.exit(1)
 
@@ -89,11 +90,11 @@ class PyAndroidImage:
                 self._mode = "smallcontextual"
 
         if not os.path.isfile(self._input):
-            print "Input file doesn't exists"
+            print("Input file doesn't exists")
             sys.exit(2)
 
         if not os.path.isdir(self._output):
-            print "Output directory doesn't exists"
+            print("Output directory doesn't exists")
             sys.exit(2)
 
     def compute_params(self):
@@ -177,13 +178,13 @@ class PyAndroidImage:
         return box_x, box_y
 
     def image_desctiption(self, res, dpi, output):
-        print "%s (%d dpi): %s " % (res.ljust(7), dpi, output)
+        print("%s (%d dpi): %s " % (res.ljust(7), dpi, output))
 
     def display_description(self):
-        print ""
-        print "Input file: %s (%dx%d)" % (self._input, self._x, self._y)
-        print "Output dir: %s" % self._output
-        print ""
+        print("")
+        print("Input file: %s (%dx%d)" % (self._input, self._x, self._y))
+        print("Output dir: %s" % self._output)
+        print("")
 
     def main(self):
         self.check_opt()
