@@ -22,13 +22,14 @@ import sys
 
 from PIL import Image
 
-PYANDROIDIMAGE_VERSION = "1.0.1"
+PYANDROIDIMAGE_VERSION = "1.2.0"
 
 
 class PyAndroidImage:
     def __init__(self):
         self._input = ""
         self._output = ""
+        self._filename = ""
         self._dpi = 640
         self._mode = "normal"
 
@@ -40,7 +41,6 @@ class PyAndroidImage:
         self._box_x = 0
         self._box_y = 0
 
-        self._basename = ""
         self._dirtype = "drawable"
 
     def main(self):
@@ -54,9 +54,10 @@ class PyAndroidImage:
             self.help_and_exit()
 
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hi:o:d:lans", [
+            opts, args = getopt.getopt(sys.argv[1:], "hi:o:f:d:lans", [
                 "help",
-                "input=", "output=", "dpi=",
+                "input=", "output=", "filename=",
+                "dpi=",
                 "launcher", "actionbar", "notification", "smallcontextual"
             ])
         except getopt.GetoptError as err:
@@ -71,6 +72,8 @@ class PyAndroidImage:
                 self._input = value
             elif param in ("-o", "--output"):
                 self._output = value
+            elif param in ("-f", "--filename"):
+                self._filename = value
             elif param in ("-d", "--dpi"):
                 self._dpi = int(value)
             elif param in ("-l", "--launcher"):
@@ -83,25 +86,39 @@ class PyAndroidImage:
             elif param in ("-s", "--smallcontextual"):
                 self._mode = "smallcontextual"
 
+        if len(self._input) == 0:
+            print("No input file specified")
+            sys.exit(2)
+
         if not os.path.isfile(self._input):
-            print("Input file doesn't exists")
+            print("Input file \"%s\" doesn't exists" % self._input)
+            sys.exit(2)
+
+        if len(self._output) == 0:
+            print("No output directory specified")
             sys.exit(2)
 
         if not os.path.isdir(self._output):
-            print("Output directory doesn't exists")
+            print("\"%s\" is not a valid output directory" % self._output)
             sys.exit(2)
+
+        if len(self._filename) == 0:
+            self._filename = os.path.basename(self._input)
+
+        name, ext = os.path.splitext(self._filename)
+        if ext.lower() != "png":
+            self._filename = "%s.%s" % (name, "png")
 
     def help_and_exit(self):
         self.usage()
         sys.exit(0)
 
     def compute_params(self):
-        self._basename = os.path.basename(self._input)
         image = Image.open(self._input)
         self._x, self._y = image.size
 
         if self._mode == "launcher":
-            self._basename = "ic_launcher.png"
+            self._filename = "ic_launcher.png"
             self._dpi = 640
             self._aspect = 1
             self._x = 192
@@ -138,11 +155,13 @@ class PyAndroidImage:
 
     def scale_image(self, dpi, dirname):
         output = os.path.join(self._output, "%s-%s" % (self._dirtype, dirname))
-        output_name = os.path.join(output, self._basename)
+        output_name = os.path.join(output, self._filename)
         self.create_dir(output)
-        self.image_desctiption(dirname, dpi, output_name)
 
         x, y = self.compute_resolution(dpi)
+
+        self.image_desctiption(dirname, x, y, dpi, output_name)
+
         image = Image.open(self._input, "r")
         if self._use_box:
             box_x, box_y = self.compute_box_resolution(dpi)
@@ -175,19 +194,22 @@ class PyAndroidImage:
         box_y = int((float(self._box_y) / self._dpi) * dpi)
         return box_x, box_y
 
-    def image_desctiption(self, res, dpi, output):
-        print("%s (%d dpi): %s " % (res.ljust(7), dpi, output))
-
     def display_description(self):
         print("")
-        print("Input file: %s (%dx%d)" % (self._input, self._x, self._y))
+        print("Input file: %s (%dx%d - %d dpi)" % (self._input, self._x, self._y, self._dpi))
         print("Output dir: %s" % self._output)
+        print("Filename  : %s" % self._filename)
         print("")
 
     @staticmethod
     def create_dir(directory):
         if not os.path.isdir(directory):
             os.makedirs(directory, 0o755)
+
+    @staticmethod
+    def image_desctiption(res, x, y, dpi, output):
+        res_str = "%dx%d" % (x, y)
+        print("%s (%s - %d dpi): %s " % (res.ljust(7), res_str.rjust(9), dpi, output))
 
     @staticmethod
     def usage():
@@ -208,6 +230,8 @@ class PyAndroidImage:
         print(" -i | --input=<filename>         Input filename")
         print(" -o | --output=<dirpath>         Output resource directory")
         print("                                   e.g. app/src/main/res")
+        print(" -f | --filename=<filename>      Output images filename")
+        print("                                   default to same input filename")
         print("")
         print(" -d | --dpi=<dpi>                DPI of source image")
         print("                                   default to 640")
