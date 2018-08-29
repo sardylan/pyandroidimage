@@ -1,4 +1,20 @@
 #!/usr/bin/python3
+#
+# PyAndroidImage
+# Copyright (C) 2018  Luca Cireddu (sardylan@gmail.com)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 
 import getopt
 import os
@@ -6,41 +22,10 @@ import sys
 
 from PIL import Image
 
+PYANDROIDIMAGE_VERSION = "1.0.1"
+
 
 class PyAndroidImage:
-    @staticmethod
-    def create_dir(directory):
-        if not os.path.isdir(directory):
-            os.makedirs(directory, 0o755)
-
-    @staticmethod
-    def usage():
-        print("")
-        print("Usage: %s [options]" % sys.argv[0])
-        print("")
-        print("")
-        print("")
-        print(" -h | --help                     Shows this message")
-        print("")
-        print(" -i | --input=<filename>         Input filename")
-        print(" -o | --output=<dirpath>         Output resource directory")
-        print("                                   e.g. app/src/main/res")
-        print("")
-        print(" -d | --dpi=<dpi>                DPI of source image")
-        print("                                   default to 640")
-        print("")
-        print("")
-        print("")
-        print("Fixed resolutions values for icons:")
-        print("(Resolution values as per 640dpi)")
-        print("")
-        print(" -l | --launcher                 Launcher (192x192)")
-        print(" -a | --actionbar                ActionBar (128x128 with 96x96 area)")
-        print(" -n | --notification             Notification (96x96  with 88x88 area)")
-        print(" -s | --smallcontextual          Small contextual (64x64)")
-        print("")
-        print("")
-
     def __init__(self):
         self._input = ""
         self._output = ""
@@ -58,12 +43,22 @@ class PyAndroidImage:
         self._basename = ""
         self._dirtype = "drawable"
 
+    def main(self):
+        self.check_opt()
+        self.compute_params()
+        self.display_description()
+        self.scale_images()
+
     def check_opt(self):
+        if len(sys.argv) == 1:
+            self.help_and_exit()
+
         try:
-            opts, args = getopt.getopt(sys.argv[1:], "hi:o:d:lans",
-                                       ["help",
-                                        "input=", "output=", "dpi=",
-                                        "launcher", "actionbar", "notification", "smallcontextual"])
+            opts, args = getopt.getopt(sys.argv[1:], "hi:o:d:lans", [
+                "help",
+                "input=", "output=", "dpi=",
+                "launcher", "actionbar", "notification", "smallcontextual"
+            ])
         except getopt.GetoptError as err:
             print(str(err))
             self.usage()
@@ -71,8 +66,7 @@ class PyAndroidImage:
 
         for param, value in opts:
             if param in ("-h", "--help"):
-                self.usage()
-                sys.exit(0)
+                self.help_and_exit()
             elif param in ("-i", "--input"):
                 self._input = value
             elif param in ("-o", "--output"):
@@ -96,6 +90,10 @@ class PyAndroidImage:
         if not os.path.isdir(self._output):
             print("Output directory doesn't exists")
             sys.exit(2)
+
+    def help_and_exit(self):
+        self.usage()
+        sys.exit(0)
 
     def compute_params(self):
         self._basename = os.path.basename(self._input)
@@ -186,11 +184,45 @@ class PyAndroidImage:
         print("Output dir: %s" % self._output)
         print("")
 
-    def main(self):
-        self.check_opt()
-        self.compute_params()
-        self.display_description()
-        self.scale_images()
+    @staticmethod
+    def create_dir(directory):
+        if not os.path.isdir(directory):
+            os.makedirs(directory, 0o755)
+
+    @staticmethod
+    def usage():
+        print("")
+        print("PyAndroidImage %s" % PYANDROIDIMAGE_VERSION)
+        print("Copyright (C) 2018  Luca Cireddu (sardylan@gmail.com)")
+        print("")
+        print("This program comes with ABSOLUTELY NO WARRANTY; for details type use --help.")
+        print("This is free software, and you are welcome to redistribute it under GPLv3 conditions.")
+        print("")
+        print("")
+        print("Usage: %s [options]" % sys.argv[0])
+        print("")
+        print("")
+        print("")
+        print(" -h | --help                     Shows this message")
+        print("")
+        print(" -i | --input=<filename>         Input filename")
+        print(" -o | --output=<dirpath>         Output resource directory")
+        print("                                   e.g. app/src/main/res")
+        print("")
+        print(" -d | --dpi=<dpi>                DPI of source image")
+        print("                                   default to 640")
+        print("")
+        print("")
+        print("")
+        print("Fixed resolutions values for icons:")
+        print("(Resolution values as per 640dpi)")
+        print("")
+        print(" -l | --launcher                 Launcher (192x192)")
+        print(" -a | --actionbar                ActionBar (128x128 with 96x96 area)")
+        print(" -n | --notification             Notification (96x96  with 88x88 area)")
+        print(" -s | --smallcontextual          Small contextual (64x64)")
+        print("")
+        print("")
 
 
 if __name__ == "__main__":
